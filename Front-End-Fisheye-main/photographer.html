@@ -1,37 +1,75 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link href="css/style.css" rel="stylesheet" type="text/css" />
-    <meta charset="utf-8">
-    <link rel="icon" type="image/png" href="assets/favicon.png">
-    <link href="https://fonts.googleapis.com/css?family=DM+Sans&display=swap" rel="stylesheet">
-    <title>Fisheye - photographe </title>
-  </head>
-  <body>
-    <header>
-      <img src="assets/images/logo.png" class="logo" />
-    </header>
-    <main id="main">
-      <div class="photograph-header">
-        <button class="contact_button" onclick="displayModal()">Contactez-moi</button>
+
+<head>
+  <link href="css/photographer.css" rel="stylesheet" type="text/css" />
+  <meta charset="utf-8">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link href="https://fonts.googleapis.com/css?family=DM+Sans&display=swap" rel="stylesheet">
+  <link href="https://vjs.zencdn.net/8.3.0/video-js.css" rel="stylesheet" />
+
+  <title>Fisheye - photographe </title>
+</head>
+
+<body>
+  <header>
+    <img src="assets/images/logo.png" class="logo" />
+  </header>
+  <main id="main">
+    <div class="photograph-header">
+      <button class="contact_button" onclick="displayModal()">Contactez-moi</button>
+    </div>
+    <div class="list">
+      <label id="sortOrder_label" for="sortOrder_button">Trier par</label>
+      <div class="listTriage">
+        <div id="sortOrder_button" class="listboxButton option" role="button" aria-haspopup="listbox" aria-expanded="false"
+          tabindex="0">
+          <div class="optionText">
+            <span id="sortOrder_value" class="selected">Popularité</span>
+          </div>
+          <div class="borderBottom"></div>
+        </div>
+        <div id="sortOrder_listbox" class="listbox" role="listbox" aria-activedescendant="sortOrder_option_popularity"
+          aria-labelledby="sortOrder_label" style="display: none;">
+          <div id="sortOrder_option_popularity" class="option hidden" role="option" aria-selected="true" tabindex="0" data-value="Popularité">
+            <div class="optionText">Popularité</div>
+            <div class="borderBottom"></div>
+          </div>
+          <div id="sortOrder_option_date" class="option" role="option" tabindex="0" data-value="Date">
+            <div class="optionText">Date</div>
+            <div class="borderBottom"></div>
+          </div>
+          <div id="sortOrder_option_type" class="option" role="option" tabindex="0" data-value="Type">
+            <div class="optionText">Type</div>
+            <div class="borderBottom"></div>
+          </div>
+        </div>
       </div>
-    </main>
-    <div id="contact_modal">
-			<div class="modal">
-				<header>
-          <h2>Contactez-moi</h2>
-          <img src="assets/icons/close.svg" onclick="closeModal()" />
-        </header>
-				<form>
-					<div>
-						<label>Prénom</label>
-						<input />
-					</div>
-          <button class="contact_button">Envoyer</button>
-				</form>
-			</div>
-		</div>
-    <script src="/scripts/pages/photographer.js"></script>
-    <script src="/scripts/utils/contactForm.js"></script>
-  </body>
+    </div>    
+    <div id="photos"></div>
+    <div class="info-photo-master">
+      <div class="info-photographe"></div>
+    </div>
+  </main>
+  <div id="contact_modal">
+    <div class="modal">
+      <header>
+        <h2>Contactez-moi</h2>
+        <img src="assets/icons/close.svg" onclick="closeModal()" />
+      </header>
+      <form>
+        <div>
+          <label>Prénom</label>
+          <input />
+        </div>
+        <button class="submit-button">Envoyer</button>
+      </form>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/8.3.0/video.min.js"></script>
+  <script src="./scripts/utils/contactForm.js"></script>
+  <script src="./scripts/pages/photographer.js"></script>
+ 
+</body>
+
 </html>
