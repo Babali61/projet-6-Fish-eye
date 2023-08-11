@@ -80,6 +80,7 @@ p {
     transform: scale(2.5);
 }
 
+
 .contact_button {
     font-size: 20px;
     font-weight: bold;
@@ -410,6 +411,7 @@ label {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    color: #901C1C;
 }
 
 .likes-images {
