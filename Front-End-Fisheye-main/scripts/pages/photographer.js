@@ -166,8 +166,7 @@ async function displayPhotographerInfo(photographer) {
   locationP.textContent = `${photographer.city}, ${photographer.country}`;
   descriptionP.textContent = photographer.tagline;
   imgTag.src = `assets/photographers/${photographer.portrait}`;
-  imgTag.setAttribute("alt", photographer.name)
-
+  imgTag.setAttribute("alt", photographer.name);
 
   locationDiv.appendChild(locationP);
 
@@ -189,7 +188,6 @@ async function displayPhotographerInfo(photographer) {
   const totalLikesP = document.createElement("p");
   totalLikesP.className = "total-likes";
   totalLikesP.innerHTML = `${photographer.totalLikes} ${filledHeartSVGBlack}`;
- 
 
   const priceP = document.createElement("p");
   priceP.textContent = `${photographer.price} € / jour`;
@@ -205,6 +203,13 @@ async function displayImages(media) {
   imagesDiv.className = "photographer-images";
   let currentIndex = 0;
 
+  // Fonction pour mettre à jour le total des likes
+  const updateTotalLikes = () => {
+    const totalLikesElement = document.querySelector(".total-likes");
+    const newTotal = media.reduce((total, image) => total + image.likes, 0);
+    totalLikesElement.innerHTML = `${newTotal} ${filledHeartSVGBlack}`;
+  };
+
   media.forEach((mediaItem, index) => {
     const imageDiv = document.createElement("div");
     imageDiv.className = "image-div";
@@ -215,7 +220,7 @@ async function displayImages(media) {
       mediaElement.src = `assets/images/${mediaItem.photographerName}/${mediaItem.image}`;
       mediaElement.className = "media";
       const altText = `${mediaItem.title}, closeup view`;
-      mediaElement.setAttribute("alt", altText)
+      mediaElement.setAttribute("alt", altText);
     } else if (mediaItem.video) {
       mediaElement = document.createElement("video");
       mediaElement.setAttribute("autoplay", "");
@@ -227,7 +232,7 @@ async function displayImages(media) {
       source.src = `assets/images/${mediaItem.photographerName}/${mediaItem.video}`;
       source.type = "video/mp4";
       const altText = `${mediaItem.title}, closeup view`;
-      source.setAttribute('alt', altText,)
+      source.setAttribute("alt", altText);
 
       mediaElement.appendChild(source);
     }
@@ -236,7 +241,7 @@ async function displayImages(media) {
       mediaElement.addEventListener("click", function () {
         currentIndex = index;
 
-        document.getElementById('main').style.filter = 'blur(5px)';
+        document.getElementById("main").style.filter = "blur(5px)";
         const modal = document.createElement("div");
         modal.className = "modal-photo";
         modal.setAttribute("aria-label", "image closeup view");
@@ -244,18 +249,18 @@ async function displayImages(media) {
         const closeButton = document.createElement("span");
         closeButton.className = "close";
         closeButton.innerHTML = "&times;";
-        closeButton.setAttribute('alt', "Close dialog")
+        closeButton.setAttribute("alt", "Close dialog");
         closeButton.addEventListener("click", function (event) {
           event.stopPropagation();
-          document.getElementById('main').style.filter = 'none';
+          document.getElementById("main").style.filter = "none";
           document.body.removeChild(modal);
         });
         modal.appendChild(closeButton);
 
         const nextButton = document.createElement("button");
         nextButton.id = "next";
-        nextButton.className="nav-button"
-        nextButton.setAttribute('alt', 'Next image')
+        nextButton.className = "nav-button";
+        nextButton.setAttribute("alt", "Next image");
         nextButton.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="50px" viewBox="0 0 24 24" width="50px" fill="#901C1C"><g><path d="M0,0h24v24H0V0z" fill="none"/></g><g><polygon points="6.23,20.23 8,22 18,12 8,2 6.23,3.77 14.46,12"/></g></svg>`;
         nextButton.addEventListener("click", function (event) {
@@ -267,7 +272,7 @@ async function displayImages(media) {
         const prevButton = document.createElement("button");
         prevButton.id = "prev";
         prevButton.className = "nav-button";
-        prevButton.setAttribute('alt', 'Previous image')
+        prevButton.setAttribute("alt", "Previous image");
         prevButton.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" height="50px" viewBox="0 0 24 24" width="50px" fill="#901C1C"><path d="M0 0h24v24H0z" fill="none"/><path d="M11.67 3.87L9.9 2.1 0 12l9.9 9.9 1.77-1.77L3.54 12z"/></svg>`;
         prevButton.addEventListener("click", function (event) {
@@ -278,15 +283,13 @@ async function displayImages(media) {
 
         const photoContainer = document.createElement("div");
         photoContainer.id = "photo-container";
-        
+
         modal.appendChild(prevButton);
         modal.appendChild(photoContainer);
         modal.appendChild(nextButton);
         document.body.appendChild(modal);
 
         updateSliderModal(modal, mediaItem);
-
-        
       });
 
       mediaElement.className = "images-photographer";
@@ -300,7 +303,36 @@ async function displayImages(media) {
 
       const likes = document.createElement("p");
       likes.className = "likes-images";
+      let isLiked = false;
       likes.innerHTML = `${mediaItem.likes} ${filledHeartSVGRed}`;
+
+      // Ajout de l'événement click
+      likes.addEventListener("click", function (event) {
+        event.stopPropagation(); // Empêche le déclenchement de la modal
+        if (!isLiked) {
+          mediaItem.likes++;
+          isLiked = true;
+        } else {
+          mediaItem.likes--;
+          isLiked = false;
+        }
+        likes.innerHTML = `${mediaItem.likes} ${filledHeartSVGRed}`;
+        updateTotalLikes();
+      });
+
+      // Ajouts pour l'accessibilité
+      likes.style.cursor = "pointer";
+      likes.setAttribute("aria-label", `Like ${mediaItem.title}`);
+      likes.setAttribute("role", "button");
+      likes.setAttribute("tabindex", "0");
+
+      // Support clavier
+      likes.addEventListener("keypress", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          likes.click();
+        }
+      });
 
       infoImage.appendChild(titleImage);
       infoImage.appendChild(likes);
@@ -313,7 +345,6 @@ async function displayImages(media) {
   photos.appendChild(imagesDiv);
 }
 
-
 function updateSliderModal(modal, mediaItem) {
   const photoContainer = modal.querySelector("#photo-container");
   while (photoContainer.firstChild) {
@@ -325,7 +356,7 @@ function updateSliderModal(modal, mediaItem) {
     mediaElement = document.createElement("img");
     mediaElement.src = `assets/images/${mediaItem.photographerName}/${mediaItem.image}`;
     mediaElement.className = "media-modal";
-    mediaElement.setAttribute('alt', mediaItem.title)
+    mediaElement.setAttribute("alt", mediaItem.title);
   } else if (mediaItem.video) {
     mediaElement = document.createElement("video");
     mediaElement.setAttribute("autoplay", "");
@@ -336,7 +367,7 @@ function updateSliderModal(modal, mediaItem) {
     let source = document.createElement("source");
     source.src = `assets/images/${mediaItem.photographerName}/${mediaItem.video}`;
     source.type = "video/mp4";
-    source.setAttribute('alt', mediaItem.title)
+    source.setAttribute("alt", mediaItem.title);
 
     mediaElement.appendChild(source);
   }
@@ -344,15 +375,14 @@ function updateSliderModal(modal, mediaItem) {
   photoContainer.appendChild(mediaElement);
 }
 
-document.querySelector('.submit-button').addEventListener('click', (event) => {
+document.querySelector(".submit-button").addEventListener("click", (event) => {
   // Empêche le rechargement de la page
   event.preventDefault();
-  
-  let prenom = document.querySelector('#prenom').value;
-let nom = document.querySelector('#nom').value;
-let email = document.querySelector('#email').value;
-let message = document.querySelector('#message').value;
 
+  let prenom = document.querySelector("#prenom").value;
+  let nom = document.querySelector("#nom").value;
+  let email = document.querySelector("#email").value;
+  let message = document.querySelector("#message").value;
 
   // Affiche les valeurs dans la console (pour le débogage)
   console.log(`Prénom : ${prenom}`);
