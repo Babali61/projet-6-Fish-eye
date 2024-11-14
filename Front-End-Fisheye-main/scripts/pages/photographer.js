@@ -13,7 +13,7 @@ let filledHeartSVGRed = `
 </svg>
 `;
 
-console.log(id); // affiche l'ID du photographe
+const likedMediaItems = new Map();
 
 async function getPhotographerById(id) {
   const response = await fetch("./data/photographers.json");
@@ -28,6 +28,13 @@ async function getPhotographerById(id) {
   photographer.media = data.media.filter(
     (media) => media.photographerId === id
   );
+
+  //  Ajout restauration des likes stockés dans la Map si le media est liké
+  photographer.media.forEach(media => {
+    if (likedMediaItems.has(media.id)) {
+      media.likes = likedMediaItems.get(media.id);
+    }
+  });
 
   // Calcul du total des likes
   photographer.totalLikes = photographer.media.reduce(
@@ -303,17 +310,20 @@ async function displayImages(media) {
 
       const likes = document.createElement("p");
       likes.className = "likes-images";
-      let isLiked = false;
+      let isLiked = likedMediaItems.has(mediaItem.id);
       likes.innerHTML = `${mediaItem.likes} ${filledHeartSVGRed}`;
 
-      // Ajout de l'événement click
+      // Ajout de l'événement click pour l'incrémentation du like
+
       likes.addEventListener("click", function (event) {
-        event.stopPropagation(); // Empêche le déclenchement de la modal
+        event.stopPropagation();
         if (!isLiked) {
           mediaItem.likes++;
+          likedMediaItems.set(mediaItem.id, mediaItem.likes);
           isLiked = true;
         } else {
           mediaItem.likes--;
+          likedMediaItems.delete(mediaItem.id);
           isLiked = false;
         }
         likes.innerHTML = `${mediaItem.likes} ${filledHeartSVGRed}`;
