@@ -297,8 +297,9 @@ label {
 }
 
 .selected {
-   
     display: flex;
+    background-color: #901C1C;
+    color: white;
 }
 
 .optionContainer {
