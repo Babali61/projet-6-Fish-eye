@@ -338,14 +338,14 @@ label {
     margin-left: 14%;
 }
 
-.borderBottom:nth-child(-n+2) {
+
+.option:not(:last-child) .borderBottom {
     width: 148px;
     position: relative;
     left: 6.5%;
     border-bottom: 1px solid white;
     top: 1px;
 }
-
 
 .selected {
     display: flex;
