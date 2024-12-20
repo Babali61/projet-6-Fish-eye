@@ -30,7 +30,7 @@ async function getPhotographerById(id) {
   );
 
   //  Ajout restauration des likes stockés dans la Map si le media est liké
-  photographer.media.forEach(media => {
+  photographer.media.forEach((media) => {
     if (likedMediaItems.has(media.id)) {
       media.likes = likedMediaItems.get(media.id);
     }
@@ -101,6 +101,38 @@ let sortOrderValue = document.getElementById("sortOrder_value"); // Valeur de l'
 let sortOrderListbox = document.getElementById("sortOrder_listbox"); // Liste déroulante
 let options = Array.from(sortOrderListbox.children); // Options de tri dans la liste déroulante
 
+// Ajouter la navigation au clavier
+button.addEventListener("keydown", function (event) {
+  switch (event.key) {
+    case "Enter":
+    case " ":
+      // Empêcher le défilement de la page avec la touche espace
+      event.preventDefault();
+      // Simuler un clic sur le bouton
+      this.click();
+      break;
+    case "Escape":
+      if (button.getAttribute("aria-expanded") === "true") {
+        button.setAttribute("aria-expanded", "false");
+        sortOrderListbox.style.display = "none";
+        button.classList.remove("open");
+      }
+      break;
+  }
+});
+
+
+// Ajouter la navigation au clavier pour les options
+options.forEach(function (option) {
+  option.addEventListener("keydown", function (event) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      this.click();
+    }
+  });
+});
+
+
 // Gestionnaire de clic sur le bouton
 button.addEventListener("click", function (event) {
   // Vérifier si la liste déroulante est actuellement ouverte ou fermée
@@ -156,24 +188,44 @@ options.forEach(function (option) {
 
 // Fonction pour afficher les informations d'un photographe dans le DOM
 async function displayPhotographerInfo(photographer) {
+  try {
+    const headerInfoDiv = createHeaderInfoDiv(photographer);
+    const imgProfilDiv = createImageProfilDiv(photographer);
+
+    const mainTag = await getMainElement();
+    mainTag.insertBefore(headerInfoDiv, mainTag.firstChild);
+
+    if (await getContactButton()) {
+      mainTag.insertBefore(await getContactButton(), headerInfoDiv.nextSibling);
+    }
+
+    mainTag.appendChild(imgProfilDiv);
+
+    const totalLikesP = createTotalLikesP(photographer);
+    const priceP = createPriceP(photographer);
+
+    const infoPhotographeDiv = await getInfoPhotographeDiv();
+    infoPhotographeDiv.appendChild(totalLikesP);
+    infoPhotographeDiv.appendChild(priceP);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function createHeaderInfoDiv(photographer) {
   const headerInfoDiv = document.createElement("div");
   headerInfoDiv.className = "divInfoHeader";
+
   const nameH1 = document.createElement("h1");
   const locationDiv = document.createElement("div");
   const locationP = document.createElement("p");
   locationP.className = "paraVillePays";
   const descriptionP = document.createElement("p");
   descriptionP.className = "descriptionInfo";
-  const imgProfilDiv = document.createElement("div");
-  imgProfilDiv.className = "container-image-profil";
-  const imgTag = document.createElement("img");
-  imgTag.className = "image-profil";
 
   nameH1.textContent = photographer.name;
   locationP.textContent = `${photographer.city}, ${photographer.country}`;
   descriptionP.textContent = photographer.tagline;
-  imgTag.src = `assets/photographers/${photographer.portrait}`;
-  imgTag.setAttribute("alt", photographer.name);
 
   locationDiv.appendChild(locationP);
 
@@ -181,28 +233,76 @@ async function displayPhotographerInfo(photographer) {
   headerInfoDiv.appendChild(locationDiv);
   headerInfoDiv.appendChild(descriptionP);
 
-  const mainTag = document.querySelector("#main .photograph-header");
-  mainTag.insertBefore(headerInfoDiv, mainTag.firstChild);
+  return headerInfoDiv;
+}
 
-  let contactButton = document.querySelector(".contact_button");
-  if (contactButton) {
-    mainTag.insertBefore(contactButton, headerInfoDiv.nextSibling);
-  }
+function createImageProfilDiv(photographer) {
+  const imgProfilDiv = document.createElement("div");
+  imgProfilDiv.className = "container-image-profil";
+  const imgTag = document.createElement("img");
+  imgTag.className = "image-profil";
+
+  imgTag.src = `assets/photographers/${photographer.portrait}`;
+  imgTag.setAttribute("alt", photographer.name);
 
   imgProfilDiv.appendChild(imgTag);
-  mainTag.appendChild(imgProfilDiv);
+  return imgProfilDiv;
+}
 
+function createTotalLikesP(photographer) {
   const totalLikesP = document.createElement("p");
   totalLikesP.className = "total-likes";
   totalLikesP.innerHTML = `${photographer.totalLikes} ${filledHeartSVGBlack}`;
+  return totalLikesP;
+}
 
+function createPriceP(photographer) {
   const priceP = document.createElement("p");
   priceP.textContent = `${photographer.price} € / jour`;
-
-  const infoPhotographeDiv = document.querySelector(".info-photographe");
-  infoPhotographeDiv.appendChild(totalLikesP);
-  infoPhotographeDiv.appendChild(priceP);
+  return priceP;
 }
+
+async function getMainElement() {
+  try {
+    return await new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve(document.querySelector("#main .photograph-header"));
+      }, 100);
+    });
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+async function getInfoPhotographeDiv() {
+  try {
+    return await new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve(document.querySelector(".info-photographe"));
+      }, 100);
+    });
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+async function getContactButton() {
+  try {
+    return await new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const button = document.querySelector(".contact_button");
+        if (button) resolve(button);
+        else resolve(null);
+      }, 100);
+    });
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
 
 async function displayImages(media) {
   const photos = document.getElementById("photos");
@@ -226,37 +326,52 @@ async function displayImages(media) {
       mediaElement = document.createElement("img");
       mediaElement.src = `assets/images/${mediaItem.photographerName}/${mediaItem.image}`;
       mediaElement.className = "media";
-      const altText = `${mediaItem.title}, closeup view`;
+      const altText = `${mediaItem.title} par ${mediaItem.photographerName}. Cliquez pour agrandir`;
       mediaElement.setAttribute("alt", altText);
+      mediaElement.setAttribute("role", "button");
+      mediaElement.setAttribute("aria-label", `Ouvrir ${mediaItem.title} en grand format`);
     } else if (mediaItem.video) {
       mediaElement = document.createElement("video");
       mediaElement.setAttribute("autoplay", "");
       mediaElement.setAttribute("loop", "");
       mediaElement.setAttribute("muted", "");
       mediaElement.className = "media";
+      mediaElement.setAttribute("role", "button");
+      mediaElement.setAttribute("aria-label", `Ouvrir la vidéo ${mediaItem.title} en grand format`);
 
       let source = document.createElement("source");
       source.src = `assets/images/${mediaItem.photographerName}/${mediaItem.video}`;
       source.type = "video/mp4";
-      const altText = `${mediaItem.title}, closeup view`;
-      source.setAttribute("alt", altText);
 
       mediaElement.appendChild(source);
     }
 
     if (mediaElement) {
+      mediaElement.setAttribute("tabindex", "0");
+      // Support clavier
+      mediaElement.addEventListener("keypress", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          mediaElement.click();
+        }
+      });
       mediaElement.addEventListener("click", function () {
         currentIndex = index;
 
         document.getElementById("main").style.filter = "blur(5px)";
         const modal = document.createElement("div");
         modal.className = "modal-photo";
-        modal.setAttribute("aria-label", "image closeup view");
+
+        modal.setAttribute("role", "dialog");
+        modal.setAttribute("aria-modal", "true");
+        modal.setAttribute("aria-label", "Image closeup view");
 
         const closeButton = document.createElement("span");
         closeButton.className = "close";
         closeButton.innerHTML = "&times;";
-        closeButton.setAttribute("alt", "Close dialog");
+        closeButton.setAttribute("role", "button");
+        closeButton.setAttribute("aria-label", "Fermer la vue agrandie");
+        closeButton.setAttribute("tabindex", "0");
         closeButton.addEventListener("click", function (event) {
           event.stopPropagation();
           document.getElementById("main").style.filter = "none";
@@ -267,19 +382,46 @@ async function displayImages(media) {
         const nextButton = document.createElement("button");
         nextButton.id = "next";
         nextButton.className = "nav-button";
-        nextButton.setAttribute("alt", "Next image");
+        nextButton.setAttribute("aria-label", "Image suivante");
         nextButton.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="50px" viewBox="0 0 24 24" width="50px" fill="#901C1C"><g><path d="M0,0h24v24H0V0z" fill="none"/></g><g><polygon points="6.23,20.23 8,22 18,12 8,2 6.23,3.77 14.46,12"/></g></svg>`;
         nextButton.addEventListener("click", function (event) {
           event.stopPropagation();
           currentIndex = (currentIndex + 1) % media.length;
           updateSliderModal(modal, media[currentIndex]);
+          if (event.key === "ArrowRight") {
+            // Next slide
+            currentIndex = (currentIndex + 1) % media.length;
+            updateSliderModal(modal, media[currentIndex]);
+          }
+        });
+
+        // listener pour clavier before, after
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "ArrowRight") {
+            currentIndex = (currentIndex + 1) % media.length;
+            updateSliderModal(modal, media[currentIndex]);
+          } else if (event.key === "ArrowLeft") {
+            // Previous slide
+            currentIndex = (currentIndex - 1 + media.length) % media.length;
+            updateSliderModal(modal, media[currentIndex]);
+          }
+        });
+
+        // Ajout de la gestion de la touche Escape pour fermer la modal
+        document.addEventListener("keydown", function (event) {
+          const modal = document.querySelector(".modal-photo");
+          if (event.key === "Escape" && modal) {
+            document.getElementById("main").style.filter = "none";
+            document.body.removeChild(modal);
+          }
         });
 
         const prevButton = document.createElement("button");
         prevButton.id = "prev";
         prevButton.className = "nav-button";
-        prevButton.setAttribute("alt", "Previous image");
+        prevButton.setAttribute("aria-label", "Image précédente");
         prevButton.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" height="50px" viewBox="0 0 24 24" width="50px" fill="#901C1C"><path d="M0 0h24v24H0z" fill="none"/><path d="M11.67 3.87L9.9 2.1 0 12l9.9 9.9 1.77-1.77L3.54 12z"/></svg>`;
         prevButton.addEventListener("click", function (event) {
@@ -332,7 +474,8 @@ async function displayImages(media) {
 
       // Ajouts pour l'accessibilité
       likes.style.cursor = "pointer";
-      likes.setAttribute("aria-label", `Like ${mediaItem.title}`);
+      likes.setAttribute("aria-label", `${isLiked ? "Retirer le like de" : "Aimer"} ${mediaItem.title}`);
+      likes.setAttribute("aria-pressed", isLiked ? "true" : "false");
       likes.setAttribute("role", "button");
       likes.setAttribute("tabindex", "0");
 
@@ -366,7 +509,10 @@ function updateSliderModal(modal, mediaItem) {
     mediaElement = document.createElement("img");
     mediaElement.src = `assets/images/${mediaItem.photographerName}/${mediaItem.image}`;
     mediaElement.className = "media-modal";
-    mediaElement.setAttribute("alt", mediaItem.title);
+    mediaElement.setAttribute(
+      "alt",
+      `${mediaItem.title} par ${mediaItem.photographerName}`
+    );
   } else if (mediaItem.video) {
     mediaElement = document.createElement("video");
     mediaElement.setAttribute("autoplay", "");
@@ -377,7 +523,10 @@ function updateSliderModal(modal, mediaItem) {
     let source = document.createElement("source");
     source.src = `assets/images/${mediaItem.photographerName}/${mediaItem.video}`;
     source.type = "video/mp4";
-    source.setAttribute("alt", mediaItem.title);
+    source.setAttribute(
+      "alt",
+      `${mediaItem.title} par ${mediaItem.photographerName}`
+    );
 
     mediaElement.appendChild(source);
   }

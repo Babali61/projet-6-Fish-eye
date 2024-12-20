@@ -44,12 +44,11 @@ function photographerTemplate(data) {
     article.appendChild(link);
 
     divInfo.appendChild(divVillePays);
-    divVillePays.appendChild(paraVille); // Ajout de paraVille à divInfo au lieu de l'article
-    divVillePays.appendChild(paraPays); // Ajout de paraPays à divInfo au lieu de l'article
+    divVillePays.appendChild(paraVille);
+    divVillePays.appendChild(paraPays);
     divInfo.appendChild(description);
     divInfo.appendChild(prix);
-    article.appendChild(divInfo); // Ajout de divInfo à l'article
-
+    article.appendChild(divInfo);
     return article;
   }
 
