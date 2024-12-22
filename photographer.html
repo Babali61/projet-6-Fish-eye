@@ -16,7 +16,11 @@
         </header>
         <main id="main">
             <div class="photograph-header">
-                <button class="contact_button" onclick="displayModal()">
+                <button 
+                    class="contact_button" 
+                    aria-label="Contacter le photographe"
+                    type="button"
+                >
                     Contactez-moi
                 </button>
             </div>
@@ -83,48 +87,90 @@
                 <div class="info-photographe"></div>
             </div>
         </main>
-        <div id="contact_modal">
+        <div id="likes-announcer" class="sr-only" role="status" aria-live="polite"></div>
+        <div id="slider-announcer" class="sr-only" role="status" aria-live="assertive"></div>
+        <div id="contact_modal" 
+            role="dialog" 
+            aria-labelledby="modal-title" 
+            aria-modal="true" 
+            aria-describedby="modal-description"
+            hidden
+        >
             <div class="modal">
                 <header>
-                    <h2>Contactez-moi</h2>
-                    <img src="assets/icons/close.svg" onclick="closeModal()" alt="close button">
+                    <h2 id="modal-title">Contactez-moi</h2>
+                    <span id="modal-description" class="sr-only">Formulaire de contact pour le photographe</span>
+                    <button 
+                        class="close-modal-btn"
+                        aria-label="Fermer le formulaire de contact"
+                        type="button"
+                    >
+                        <img src="assets/icons/close.svg" alt="">
+                    </button>
                 </header>
-                <form>
-                    <div>
-                        <label for="prenom">Prénom</label>
+                <form id="contact-form" novalidate>
+                    <div class="form-group">
+                        <label for="prenom" id="prenom-label">Prénom</label>
                         <input
                             id="prenom"
                             name="prenom"
                             type="text"
+                            required
                             aria-required="true"
-                            placeholder="Enter your first name"
+                            aria-describedby="prenom-error prenom-description"
+                            placeholder="Entrez votre prénom"
                         >
+                        <span id="prenom-description" class="sr-only">Entrez votre prénom, minimum 2 caractères</span>
+                        <span id="prenom-error" class="error-msg" role="alert" aria-live="polite"></span>
                     </div>
-                    <div>
-                        <label for="nom">Nom</label>
+                    <div class="form-group">
+                        <label for="nom" id="nom-label">Nom</label>
                         <input
                             id="nom"
                             name="nom"
                             type="text"
+                            required
                             aria-required="true"
-                            placeholder="Enter your last name"
+                            aria-describedby="nom-error nom-description"
+                            placeholder="Entrez votre nom"
                         >
+                        <span id="nom-description" class="sr-only">Entrez votre nom, minimum 2 caractères</span>
+                        <span id="nom-error" class="error-msg" role="alert" aria-live="polite"></span>
                     </div>
-                    <div>
-                        <label for="email">Email</label>
+                    <div class="form-group">
+                        <label for="email" id="email-label">Email</label>
                         <input
                             id="email"
                             name="email"
                             type="email"
+                            required
                             aria-required="true"
-                            placeholder="Enter your email address"
+                            aria-describedby="email-error email-description"
+                            placeholder="Entrez votre adresse email"
                         >
+                        <span id="email-description" class="sr-only">Entrez une adresse email valide</span>
+                        <span id="email-error" class="error-msg" role="alert" aria-live="polite"></span>
                     </div>
-                    <div>
-                        <label for="message">Votre message</label>
-                        <textarea id="message"></textarea>
+                    <div class="form-group">
+                        <label for="message" id="message-label">Votre message</label>
+                        <textarea 
+                            id="message"
+                            name="message"
+                            required
+                            aria-required="true"
+                            aria-describedby="message-error message-description"
+                            placeholder="Écrivez votre message ici"
+                        ></textarea>
+                        <span id="message-description" class="sr-only">Écrivez votre message, minimum 10 caractères</span>
+                        <span id="message-error" class="error-msg" role="alert" aria-live="polite"></span>
                     </div>
-                    <button class="submit-button">Envoyer</button>
+                    <button 
+                        type="submit" 
+                        class="submit-button"
+                        aria-label="Envoyer le formulaire de contact"
+                    >
+                        Envoyer
+                    </button>
                 </form>
             </div>
         </div>

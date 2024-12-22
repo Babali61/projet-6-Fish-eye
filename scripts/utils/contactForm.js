@@ -1,78 +1,158 @@
+// Gestion de la modale
+const modal = document.getElementById('contact_modal');
+const closeBtn = document.querySelector('.close-modal-btn');
+const form = document.getElementById('contact-form');
+const contactButton = document.querySelector('.contact_button');
+
+// Vérification que les éléments sont bien trouvés
+console.log('Modal trouvée:', modal);
+console.log('Bouton de fermeture trouvé:', closeBtn);
+console.log('Formulaire trouvé:', form);
+console.log('Bouton de contact trouvé:', contactButton);
+
+let photographerName = '';
+
+// Fonction pour ouvrir la modale
 function displayModal() {
-    const modal = document.getElementById("contact_modal");
-    const mainContent = document.getElementById("main");
-    
-    // Afficher le modal
-    modal.style.display = "block";
-    
-    // Configurer ARIA et l'accessibilité
-    modal.setAttribute("aria-hidden", "false");
-    mainContent.setAttribute("aria-hidden", "true");
-    
-    // Désactiver le focus sur les éléments en arrière-plan
-    mainContent.querySelectorAll('a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])').forEach(el => {
-        el.setAttribute('tabindex', '-1');
-    });
-    
-    // Mettre le focus sur le premier champ du formulaire
-    document.getElementById("prenom").focus();
-    
-    // Ajouter les écouteurs d'événements
-    document.addEventListener('keydown', handleEscapeKey);
-    modal.addEventListener('keydown', handleTabKey);
-    
-    // Sauvegarder l'élément qui avait le focus avant l'ouverture
-    this.previouslyFocusedElement = document.activeElement;
+    modal.removeAttribute('hidden');
+    // Mettre le focus sur le premier champ
+    document.getElementById('prenom').focus();
+    // Piéger le focus dans la modale
+    trapFocus();
 }
 
+// Fonction pour fermer la modale
 function closeModal() {
-    const modal = document.getElementById("contact_modal");
-    const mainContent = document.getElementById("main");
-    
-    // Cacher le modal
-    modal.style.display = "none";
-    
-    // Restaurer l'accessibilité du contenu principal
-    modal.setAttribute("aria-hidden", "true");
-    mainContent.setAttribute("aria-hidden", "false");
-    
-    // Réactiver le focus sur les éléments en arrière-plan
-    mainContent.querySelectorAll('[tabindex="-1"]').forEach(el => {
-        el.removeAttribute('tabindex');
-    });
-    
-    // Retirer les écouteurs d'événements
-    document.removeEventListener('keydown', handleEscapeKey);
-    modal.removeEventListener('keydown', handleTabKey);
-    
-    // Remettre le focus sur l'élément précédent
-    if (this.previouslyFocusedElement) {
-        this.previouslyFocusedElement.focus();
-    }
+    modal.setAttribute('hidden', '');
+    // Remettre le focus sur le bouton qui a ouvert la modale
+    contactButton.focus();
 }
 
-function handleTabKey(e) {
-    const modal = document.getElementById("contact_modal");
+// Gestion du focus dans la modale
+function trapFocus() {
     const focusableElements = modal.querySelectorAll(
-        'button, input, textarea, [tabindex]:not([tabindex="-1"])'
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
-    const firstElement = focusableElements[0];
-    const lastElement = focusableElements[focusableElements.length - 1];
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
 
-    // Si on appuie sur Shift + Tab et qu'on est sur le premier élément
-    if (e.shiftKey && e.key === 'Tab' && document.activeElement === firstElement) {
-        e.preventDefault();
-        lastElement.focus();
-    }
-    // Si on appuie sur Tab et qu'on est sur le dernier élément
-    else if (!e.shiftKey && e.key === 'Tab' && document.activeElement === lastElement) {
-        e.preventDefault();
-        firstElement.focus();
-    }
+    modal.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeModal();
+        }
+        if (e.key === 'Tab') {
+            if (e.shiftKey) {
+                if (document.activeElement === firstFocusable) {
+                    e.preventDefault();
+                    lastFocusable.focus();
+                }
+            } else {
+                if (document.activeElement === lastFocusable) {
+                    e.preventDefault();
+                    firstFocusable.focus();
+                }
+            }
+        }
+    });
 }
 
-function handleEscapeKey(e) {
-    if (e.key === "Escape") {
+// Ajout des gestionnaires d'événements pour le bouton de contact
+contactButton.addEventListener('click', displayModal);
+contactButton.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        displayModal();
+    }
+});
+
+// Validation des champs
+function validateField(input) {
+    const field = input.id;
+    const value = input.value.trim();
+    let isValid = true;
+    const errorElement = document.getElementById(`${field}-error`);
+
+    // Réinitialiser l'état
+    input.removeAttribute('aria-invalid');
+    errorElement.textContent = '';
+
+    // Validation spécifique pour chaque champ
+    switch (field) {
+        case 'prenom':
+        case 'nom':
+            if (value.length < 2) {
+                errorElement.textContent = 'Ce champ doit contenir au moins 2 caractères';
+                isValid = false;
+            }
+            break;
+        case 'email':
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+                errorElement.textContent = 'Veuillez entrer une adresse email valide';
+                isValid = false;
+            }
+            break;
+        case 'message':
+            if (value.length < 10) {
+                errorElement.textContent = 'Le message doit contenir au moins 10 caractères';
+                isValid = false;
+            }
+            break;
+    }
+
+    if (!isValid) {
+        input.setAttribute('aria-invalid', 'true');
+    }
+
+    return isValid;
+}
+
+// Gestionnaire de soumission du formulaire
+form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    let isFormValid = true;
+
+    // Valider tous les champs
+    const inputs = form.querySelectorAll('input, textarea');
+    inputs.forEach(input => {
+        if (!validateField(input)) {
+            isFormValid = false;
+        }
+    });
+
+    if (isFormValid) {
+        // Récupérer les données du formulaire
+        const formData = {
+            prenom: document.getElementById('prenom').value,
+            nom: document.getElementById('nom').value,
+            email: document.getElementById('email').value,
+            message: document.getElementById('message').value,
+            photographe: photographerName
+        };
+
+        // Afficher les données dans la console
+        console.log('Données du formulaire :', formData);
+
+        // Fermer la modale
+        closeModal();
+        
+        // Réinitialiser le formulaire
+        form.reset();
+    }
+});
+
+// Validation en temps réel
+form.querySelectorAll('input, textarea').forEach(input => {
+    input.addEventListener('blur', () => validateField(input));
+});
+
+// Gestionnaire pour le bouton de fermeture
+closeBtn.addEventListener('click', closeModal);
+
+// Gestionnaire pour fermer la modale en cliquant à l'extérieur
+modal.addEventListener('click', (e) => {
+    // Si on clique sur la modale elle-même (pas sur son contenu)
+    if (e.target === modal) {
         closeModal();
     }
-}
+});

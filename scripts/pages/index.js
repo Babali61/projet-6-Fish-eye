@@ -1,27 +1,35 @@
-async function getPhotographers() {
-    const response = await fetch("./data/photographers.json");
-    if (!response.ok) {
-        const message = `An error has occurred: ${response.status}`;
-        throw new Error(message);
+import PhotographerModel from '../models/PhotographerModel.js';
+import PhotographerView from '../views/PhotographerView.js';
+import PhotographerController from '../controllers/PhotographerController.js';
+
+// Pattern Module
+const App = (function() {
+    let instance;
+
+    function createInstance() {
+        const model = PhotographerModel;
+        const view = new PhotographerView();
+        const controller = new PhotographerController(model, view);
+
+        return {
+            initialize: async function() {
+                await controller.initialize();
+            }
+        };
     }
-    const data = await response.json();
-    return data;
-}
 
-async function displayData(photographers) {
-    const photographersSection = document.querySelector(".photographer_section");
+    return {
+        getInstance: function() {
+            if (!instance) {
+                instance = createInstance();
+            }
+            return instance;
+        }
+    };
+})();
 
-    photographers.forEach((photographer) => {
-        const photographerModel = photographerTemplate(photographer);
-        const userCardDOM = photographerModel.getUserCardDOM();
-        photographersSection.appendChild(userCardDOM);
-    });
-}
-
-async function init() {
-    // Récupère les datas des photographes
-    const { photographers } = await getPhotographers();
-    displayData(photographers);
-}
-
-init();
+// Initialisation de l'application
+document.addEventListener('DOMContentLoaded', () => {
+    const app = App.getInstance();
+    app.initialize();
+});

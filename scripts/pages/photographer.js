@@ -339,10 +339,9 @@ async function displayImages(media) {
       mediaElement.setAttribute("role", "button");
       mediaElement.setAttribute("aria-label", `Ouvrir la vidéo ${mediaItem.title} en grand format`);
 
-      let source = document.createElement("source");
+      const source = document.createElement("source");
       source.src = `assets/images/${mediaItem.photographerName}/${mediaItem.video}`;
       source.type = "video/mp4";
-
       mediaElement.appendChild(source);
     }
 
@@ -359,12 +358,15 @@ async function displayImages(media) {
         currentIndex = index;
 
         document.getElementById("main").style.filter = "blur(5px)";
+        const modalOverlay = document.createElement("div");
+        modalOverlay.className = "modal-overlay";
+        
         const modal = document.createElement("div");
         modal.className = "modal-photo";
 
         modal.setAttribute("role", "dialog");
         modal.setAttribute("aria-modal", "true");
-        modal.setAttribute("aria-label", "Image closeup view");
+        modal.setAttribute("aria-label", "Vue agrandie");
 
         const closeButton = document.createElement("span");
         closeButton.className = "close";
@@ -372,12 +374,6 @@ async function displayImages(media) {
         closeButton.setAttribute("role", "button");
         closeButton.setAttribute("aria-label", "Fermer la vue agrandie");
         closeButton.setAttribute("tabindex", "0");
-        closeButton.addEventListener("click", function (event) {
-          event.stopPropagation();
-          document.getElementById("main").style.filter = "none";
-          document.body.removeChild(modal);
-        });
-        modal.appendChild(closeButton);
 
         const nextButton = document.createElement("button");
         nextButton.id = "next";
@@ -385,38 +381,6 @@ async function displayImages(media) {
         nextButton.setAttribute("aria-label", "Image suivante");
         nextButton.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="50px" viewBox="0 0 24 24" width="50px" fill="#901C1C"><g><path d="M0,0h24v24H0V0z" fill="none"/></g><g><polygon points="6.23,20.23 8,22 18,12 8,2 6.23,3.77 14.46,12"/></g></svg>`;
-        nextButton.addEventListener("click", function (event) {
-          event.stopPropagation();
-          currentIndex = (currentIndex + 1) % media.length;
-          updateSliderModal(modal, media[currentIndex]);
-          if (event.key === "ArrowRight") {
-            // Next slide
-            currentIndex = (currentIndex + 1) % media.length;
-            updateSliderModal(modal, media[currentIndex]);
-          }
-        });
-
-        // listener pour clavier before, after
-
-        document.addEventListener("keydown", function (event) {
-          if (event.key === "ArrowRight") {
-            currentIndex = (currentIndex + 1) % media.length;
-            updateSliderModal(modal, media[currentIndex]);
-          } else if (event.key === "ArrowLeft") {
-            // Previous slide
-            currentIndex = (currentIndex - 1 + media.length) % media.length;
-            updateSliderModal(modal, media[currentIndex]);
-          }
-        });
-
-        // Ajout de la gestion de la touche Escape pour fermer la modal
-        document.addEventListener("keydown", function (event) {
-          const modal = document.querySelector(".modal-photo");
-          if (event.key === "Escape" && modal) {
-            document.getElementById("main").style.filter = "none";
-            document.body.removeChild(modal);
-          }
-        });
 
         const prevButton = document.createElement("button");
         prevButton.id = "prev";
@@ -424,19 +388,100 @@ async function displayImages(media) {
         prevButton.setAttribute("aria-label", "Image précédente");
         prevButton.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" height="50px" viewBox="0 0 24 24" width="50px" fill="#901C1C"><path d="M0 0h24v24H0z" fill="none"/><path d="M11.67 3.87L9.9 2.1 0 12l9.9 9.9 1.77-1.77L3.54 12z"/></svg>`;
-        prevButton.addEventListener("click", function (event) {
-          event.stopPropagation();
-          currentIndex = (currentIndex - 1 + media.length) % media.length;
-          updateSliderModal(modal, media[currentIndex]);
-        });
 
         const photoContainer = document.createElement("div");
         photoContainer.id = "photo-container";
 
+        // Gestionnaire pour la navigation au clavier
+        function handleKeyboardNavigation(event) {
+          switch(event.key) {
+            case "ArrowRight":
+              event.preventDefault();
+              currentIndex = (currentIndex + 1) % media.length;
+              updateSliderModal(modal, media[currentIndex]);
+              break;
+            case "ArrowLeft":
+              event.preventDefault();
+              currentIndex = (currentIndex - 1 + media.length) % media.length;
+              updateSliderModal(modal, media[currentIndex]);
+              break;
+            case "Escape":
+              event.preventDefault();
+              closeSliderModal();
+              break;
+            case "Tab":
+              // Piéger le focus dans la modale
+              const focusableElements = modal.querySelectorAll(
+                'button, [href], [tabindex]:not([tabindex="-1"])'
+              );
+              const firstFocusable = focusableElements[0];
+              const lastFocusable = focusableElements[focusableElements.length - 1];
+
+              if (event.shiftKey) { // Shift + Tab
+                if (document.activeElement === firstFocusable) {
+                  event.preventDefault();
+                  lastFocusable.focus();
+                }
+              } else { // Tab
+                if (document.activeElement === lastFocusable) {
+                  event.preventDefault();
+                  firstFocusable.focus();
+                }
+              }
+              break;
+          }
+        }
+
+        // Fonction pour fermer la modale
+        function closeSliderModal() {
+          document.getElementById("main").style.filter = "none";
+          document.body.removeChild(modalOverlay);
+          document.removeEventListener("keydown", handleKeyboardNavigation);
+          mediaElement.focus(); // Retourne le focus à l'élément qui a ouvert la modale
+        }
+
+        // Gestionnaires d'événements
+        closeButton.addEventListener("click", closeSliderModal);
+        closeButton.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            closeSliderModal();
+          }
+        });
+
+        nextButton.addEventListener("click", () => {
+          currentIndex = (currentIndex + 1) % media.length;
+          updateSliderModal(modal, media[currentIndex]);
+        });
+
+        prevButton.addEventListener("click", () => {
+          currentIndex = (currentIndex - 1 + media.length) % media.length;
+          updateSliderModal(modal, media[currentIndex]);
+        });
+
+        // Ajouter les éléments à la modale
+        modal.appendChild(closeButton);
         modal.appendChild(prevButton);
         modal.appendChild(photoContainer);
         modal.appendChild(nextButton);
-        document.body.appendChild(modal);
+        modalOverlay.appendChild(modal);
+        document.body.appendChild(modalOverlay);
+
+        // Gestionnaire pour fermer en cliquant à l'extérieur
+        modalOverlay.addEventListener('click', (e) => {
+            console.log('Click sur l\'overlay');
+            console.log('Target:', e.target);
+            console.log('Overlay:', modalOverlay);
+            if (e.target === modalOverlay) {
+                closeSliderModal();
+            }
+        });
+
+        // Ajouter la navigation au clavier
+        document.addEventListener("keydown", handleKeyboardNavigation);
+
+        // Mettre le focus sur le bouton de fermeture
+        closeButton.focus();
 
         updateSliderModal(modal, mediaItem);
       });
@@ -455,21 +500,45 @@ async function displayImages(media) {
       let isLiked = likedMediaItems.has(mediaItem.id);
       likes.innerHTML = `${mediaItem.likes} ${filledHeartSVGRed}`;
 
-      // Ajout de l'événement click pour l'incrémentation du like
+      // Fonction pour annoncer les changements de likes
+      function announceLikeChange(title, isAdding) {
+          const announcer = document.getElementById('likes-announcer');
+          if (!announcer) return;
 
+          let message;
+          if (isAdding) {
+              message = `Vous avez ajouté un like à ${title}. Vous pouvez retirer le like en appuyant à nouveau sur le bouton.`;
+          } else {
+              message = `Vous avez retiré le like de ${title}. Vous pouvez ajouter un like en appuyant à nouveau sur le bouton.`;
+          }
+          
+          // Vider l'annonceur avant d'ajouter le nouveau message
+          announcer.textContent = '';
+          
+          // Ajouter le nouveau message après un court délai
+          setTimeout(() => {
+              announcer.textContent = message;
+          }, 100);
+      }
+
+      // Modification de la gestion des likes
       likes.addEventListener("click", function (event) {
-        event.stopPropagation();
-        if (!isLiked) {
-          mediaItem.likes++;
-          likedMediaItems.set(mediaItem.id, mediaItem.likes);
-          isLiked = true;
-        } else {
-          mediaItem.likes--;
-          likedMediaItems.delete(mediaItem.id);
-          isLiked = false;
-        }
-        likes.innerHTML = `${mediaItem.likes} ${filledHeartSVGRed}`;
-        updateTotalLikes();
+          event.stopPropagation();
+          if (!isLiked) {
+              mediaItem.likes++;
+              likedMediaItems.set(mediaItem.id, mediaItem.likes);
+              isLiked = true;
+              announceLikeChange(mediaItem.title, true);
+          } else {
+              mediaItem.likes--;
+              likedMediaItems.delete(mediaItem.id);
+              isLiked = false;
+              announceLikeChange(mediaItem.title, false);
+          }
+          likes.innerHTML = `${mediaItem.likes} ${filledHeartSVGRed}`;
+          likes.setAttribute('aria-label', `${isLiked ? "Retirer le like de" : "Aimer"} ${mediaItem.title}`);
+          likes.setAttribute('aria-pressed', isLiked ? "true" : "false");
+          updateTotalLikes();
       });
 
       // Ajouts pour l'accessibilité
@@ -502,6 +571,14 @@ function updateSliderModal(modal, mediaItem) {
   const photoContainer = modal.querySelector("#photo-container");
   while (photoContainer.firstChild) {
     photoContainer.firstChild.remove();
+  }
+
+  // Annoncer le changement d'image
+  const announcer = document.getElementById('slider-announcer');
+  if (announcer) {
+    const mediaType = mediaItem.image ? "Image" : "Vidéo";
+    const message = `${mediaType} ${mediaItem.title} de ${mediaItem.photographerName}`;
+    announcer.textContent = message;
   }
 
   let mediaElement;
@@ -552,5 +629,7 @@ document.querySelector(".submit-button").addEventListener("click", (event) => {
 
 getPhotographerById(id).then((photographer) => {
   displayPhotographerInfo(photographer);
+  // Trier par popularité par défaut
+  sortMedia(photographer, "Popularité");
   displayImages(photographer.media);
 });
