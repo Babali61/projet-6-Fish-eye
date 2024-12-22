@@ -633,3 +633,34 @@ getPhotographerById(id).then((photographer) => {
   sortMedia(photographer, "Popularité");
   displayImages(photographer.media);
 });
+
+// Ajout de la gestion du loader au début du fichier
+window.addEventListener('DOMContentLoaded', () => {
+    const loader = document.querySelector('.loader-container');
+    const pageContent = document.querySelector('main');
+    let isLoaderRemoved = false;
+    
+    if (!loader || !pageContent) return;
+
+    // Ajouter la classe page-content au main
+    pageContent.classList.add('page-content');
+    
+    // Cacher le loader avec une transition
+    setTimeout(() => {
+        if (loader && !isLoaderRemoved) {
+            loader.classList.add('loader-hidden');
+            pageContent.classList.add('visible');
+            
+            // Supprimer le loader après la transition
+            const handleTransitionEnd = () => {
+                if (!isLoaderRemoved && loader.parentNode) {
+                    document.body.removeChild(loader);
+                    isLoaderRemoved = true;
+                }
+                loader.removeEventListener('transitionend', handleTransitionEnd);
+            };
+            
+            loader.addEventListener('transitionend', handleTransitionEnd);
+        }
+    }, 1000);
+});
