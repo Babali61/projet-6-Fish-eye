@@ -96,9 +96,8 @@ function sortMedia(photographer, option) {
 
 // Récupération des éléments du DOM
 let button = document.getElementById("sortOrder_button"); // Bouton pour afficher/masquer la liste déroulante
-let sortOrderLabel = document.getElementById("sortOrder_label"); // Étiquette pour le libellé actuel de l'option sélectionnée
-let sortOrderValue = document.getElementById("sortOrder_value"); // Valeur de l'option sélectionnée
 let sortOrderListbox = document.getElementById("sortOrder_listbox"); // Liste déroulante
+let sortOrderValue = document.getElementById("sortOrder_value"); // Valeur de l'option sélectionnée
 let options = Array.from(sortOrderListbox.children); // Options de tri dans la liste déroulante
 
 // Ajouter la navigation au clavier
@@ -134,7 +133,7 @@ options.forEach(function (option) {
 
 
 // Gestionnaire de clic sur le bouton
-button.addEventListener("click", function (event) {
+button.addEventListener("click", function () {
   // Vérifier si la liste déroulante est actuellement ouverte ou fermée
   let isExpanded = button.getAttribute("aria-expanded") === "true";
 
@@ -151,7 +150,7 @@ button.addEventListener("click", function (event) {
 });
 
 options.forEach(function (option) {
-  option.addEventListener("click", function (event) {
+  option.addEventListener("click", function () {
     // Réinitialiser l'état de toutes les options
     options.forEach(function (otherOption) {
       otherOption.setAttribute("aria-selected", "false");
@@ -264,7 +263,7 @@ function createPriceP(photographer) {
 
 async function getMainElement() {
   try {
-    return await new Promise((resolve, reject) => {
+    return await new Promise((resolve) => {
       setTimeout(() => {
         resolve(document.querySelector("#main .photograph-header"));
       }, 100);
@@ -277,7 +276,7 @@ async function getMainElement() {
 
 async function getInfoPhotographeDiv() {
   try {
-    return await new Promise((resolve, reject) => {
+    return await new Promise((resolve) => {
       setTimeout(() => {
         resolve(document.querySelector(".info-photographe"));
       }, 100);
@@ -290,7 +289,7 @@ async function getInfoPhotographeDiv() {
 
 async function getContactButton() {
   try {
-    return await new Promise((resolve, reject) => {
+    return await new Promise((resolve) => {
       setTimeout(() => {
         const button = document.querySelector(".contact_button");
         if (button) resolve(button);
@@ -394,6 +393,12 @@ async function displayImages(media) {
 
         // Gestionnaire pour la navigation au clavier
         function handleKeyboardNavigation(event) {
+          const focusableElements = modal.querySelectorAll(
+            'button, [href], [tabindex]:not([tabindex="-1"])'
+          );
+          const firstFocusable = focusableElements[0];
+          const lastFocusable = focusableElements[focusableElements.length - 1];
+
           switch(event.key) {
             case "ArrowRight":
               event.preventDefault();
@@ -410,13 +415,6 @@ async function displayImages(media) {
               closeSliderModal();
               break;
             case "Tab":
-              // Piéger le focus dans la modale
-              const focusableElements = modal.querySelectorAll(
-                'button, [href], [tabindex]:not([tabindex="-1"])'
-              );
-              const firstFocusable = focusableElements[0];
-              const lastFocusable = focusableElements[focusableElements.length - 1];
-
               if (event.shiftKey) { // Shift + Tab
                 if (document.activeElement === firstFocusable) {
                   event.preventDefault();

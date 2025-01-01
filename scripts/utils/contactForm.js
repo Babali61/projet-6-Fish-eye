@@ -15,128 +15,91 @@ let photographerName = '';
 // Fonction pour ouvrir la modale
 function displayModal() {
     modal.removeAttribute('hidden');
-    // Mettre le focus sur le premier champ
-    document.getElementById('prenom').focus();
-    // Piéger le focus dans la modale
-    trapFocus();
+    const focusableElements = modal.querySelectorAll(
+        'button, [href], input, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    
+    // Gestionnaire d'événements pour la navigation au clavier
+    function handleKeydown(event) {
+        const first = focusableElements[0];
+        const last = focusableElements[focusableElements.length - 1];
+
+        if (event.key === 'Tab') {
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        } else if (event.key === 'Escape') {
+            closeModal();
+        }
+    }
+
+    modal.addEventListener('keydown', handleKeydown);
+    focusableElements[0].focus();
 }
 
 // Fonction pour fermer la modale
 function closeModal() {
     modal.setAttribute('hidden', '');
-    // Remettre le focus sur le bouton qui a ouvert la modale
-    contactButton.focus();
+    document.querySelector('.contact_button').focus();
 }
-
-// Gestion du focus dans la modale
-function trapFocus() {
-    const focusableElements = modal.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    const firstFocusable = focusableElements[0];
-    const lastFocusable = focusableElements[focusableElements.length - 1];
-
-    modal.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            closeModal();
-        }
-        if (e.key === 'Tab') {
-            if (e.shiftKey) {
-                if (document.activeElement === firstFocusable) {
-                    e.preventDefault();
-                    lastFocusable.focus();
-                }
-            } else {
-                if (document.activeElement === lastFocusable) {
-                    e.preventDefault();
-                    firstFocusable.focus();
-                }
-            }
-        }
-    });
-}
-
-// Ajout des gestionnaires d'événements pour le bouton de contact
-contactButton.addEventListener('click', displayModal);
-contactButton.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        displayModal();
-    }
-});
 
 // Validation des champs
-function validateField(input) {
-    const field = input.id;
-    const value = input.value.trim();
+function validateField(field, regex, errorMessage) {
+    const errorElement = document.getElementById(`${field.id}-error`);
     let isValid = true;
-    const errorElement = document.getElementById(`${field}-error`);
 
-    // Réinitialiser l'état
-    input.removeAttribute('aria-invalid');
-    errorElement.textContent = '';
-
-    // Validation spécifique pour chaque champ
-    switch (field) {
-        case 'prenom':
-        case 'nom':
-            if (value.length < 2) {
-                errorElement.textContent = 'Ce champ doit contenir au moins 2 caractères';
-                isValid = false;
-            }
-            break;
-        case 'email':
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(value)) {
-                errorElement.textContent = 'Veuillez entrer une adresse email valide';
-                isValid = false;
-            }
-            break;
-        case 'message':
-            if (value.length < 10) {
-                errorElement.textContent = 'Le message doit contenir au moins 10 caractères';
-                isValid = false;
-            }
-            break;
-    }
-
-    if (!isValid) {
-        input.setAttribute('aria-invalid', 'true');
+    if (!field.value.trim()) {
+        errorElement.textContent = 'Ce champ est requis';
+        field.setAttribute('aria-invalid', 'true');
+        isValid = false;
+    } else if (regex && !regex.test(field.value)) {
+        errorElement.textContent = errorMessage;
+        field.setAttribute('aria-invalid', 'true');
+        isValid = false;
+    } else {
+        errorElement.textContent = '';
+        field.setAttribute('aria-invalid', 'false');
     }
 
     return isValid;
 }
 
+function validateForm() {
+    const prenom = document.getElementById('prenom');
+    const nom = document.getElementById('nom');
+    const email = document.getElementById('email');
+    const message = document.getElementById('message');
+
+    const nameRegex = /^[a-zA-ZÀ-ÿ\s]{2,}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    const isValidPrenom = validateField(prenom, nameRegex, 'Prénom invalide (minimum 2 caractères, lettres uniquement)');
+    const isValidNom = validateField(nom, nameRegex, 'Nom invalide (minimum 2 caractères, lettres uniquement)');
+    const isValidEmail = validateField(email, emailRegex, 'Email invalide');
+    const isValidMessage = validateField(message, null, '');
+
+    return isValidPrenom && isValidNom && isValidEmail && isValidMessage;
+}
+
 // Gestionnaire de soumission du formulaire
 form.addEventListener('submit', (e) => {
     e.preventDefault();
-    let isFormValid = true;
-
-    // Valider tous les champs
-    const inputs = form.querySelectorAll('input, textarea');
-    inputs.forEach(input => {
-        if (!validateField(input)) {
-            isFormValid = false;
-        }
-    });
-
-    if (isFormValid) {
-        // Récupérer les données du formulaire
+    
+    if (validateForm()) {
+        // Si le formulaire est valide, afficher les données dans la console
         const formData = {
+            photographe: photographerName,
             prenom: document.getElementById('prenom').value,
             nom: document.getElementById('nom').value,
             email: document.getElementById('email').value,
-            message: document.getElementById('message').value,
-            photographe: photographerName
+            message: document.getElementById('message').value
         };
-
-        // Afficher les données dans la console
         console.log('Données du formulaire :', formData);
-
-        // Fermer la modale
         closeModal();
-        
-        // Réinitialiser le formulaire
         form.reset();
     }
 });
@@ -154,5 +117,16 @@ modal.addEventListener('click', (e) => {
     // Si on clique sur la modale elle-même (pas sur son contenu)
     if (e.target === modal) {
         closeModal();
+    }
+});
+
+// Ajout des gestionnaires d'événements pour le bouton de contact
+contactButton.addEventListener('click', displayModal);
+
+// Support clavier pour le bouton de contact
+contactButton.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        displayModal();
     }
 });
