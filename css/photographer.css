@@ -128,12 +128,13 @@ p {
     align-items: center;
     justify-content: space-between;
     padding: 35px;
-   
     position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .blur {
@@ -161,6 +162,8 @@ p {
     align-items: center;
     justify-content: center;
     z-index: 1001;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .media-modal {
@@ -185,6 +188,7 @@ p {
     width: 1069px;
     height: 710px;
     justify-content: center;
+    overflow: auto;
 }
 
 .nav-button {
@@ -577,4 +581,8 @@ label {
 
 .page-content.visible {
     opacity: 1;
+}
+
+.body-no-scroll {
+    overflow: hidden;
 }

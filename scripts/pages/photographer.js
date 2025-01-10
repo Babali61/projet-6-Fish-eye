@@ -355,8 +355,8 @@ async function displayImages(media) {
       });
       mediaElement.addEventListener("click", function () {
         currentIndex = index;
-
         document.getElementById("main").style.filter = "blur(5px)";
+        document.body.classList.add('body-no-scroll');
         const modalOverlay = document.createElement("div");
         modalOverlay.className = "modal-overlay";
         
@@ -433,9 +433,10 @@ async function displayImages(media) {
         // Fonction pour fermer la modale
         function closeSliderModal() {
           document.getElementById("main").style.filter = "none";
+          document.body.classList.remove('body-no-scroll');
           document.body.removeChild(modalOverlay);
           document.removeEventListener("keydown", handleKeyboardNavigation);
-          mediaElement.focus(); // Retourne le focus à l'élément qui a ouvert la modale
+          mediaElement.focus();
         }
 
         // Gestionnaires d'événements

@@ -15,6 +15,7 @@ let photographerName = '';
 // Fonction pour ouvrir la modale
 function displayModal() {
     modal.removeAttribute('hidden');
+    document.body.classList.add('body-no-scroll');
     const focusableElements = modal.querySelectorAll(
         'button, [href], input, textarea, [tabindex]:not([tabindex="-1"])'
     );
@@ -44,6 +45,7 @@ function displayModal() {
 // Fonction pour fermer la modale
 function closeModal() {
     modal.setAttribute('hidden', '');
+    document.body.classList.remove('body-no-scroll');
     document.querySelector('.contact_button').focus();
 }
 
